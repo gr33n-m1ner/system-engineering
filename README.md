@@ -3,3 +3,4 @@
 Я выбрал тему "Массажный салон (Работа с клиентами)"
 
 1. [Техническое задание](assignments/technical_specification.md)
+2. [База данных](assignments/database)

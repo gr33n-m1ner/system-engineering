@@ -1,0 +1,2 @@
+rootProject.name = "massage-parlor"
+

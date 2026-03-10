@@ -1,0 +1,89 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: Application Health Alerts
+    folder: Massage Parlor Monitoring
+    interval: 1m
+    rules:
+      - uid: service-down-alert
+        title: Service Down
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              expr: up{job="spring-boot-app"}
+              instant: true
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [1]
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              refId: C
+              type: classic_conditions
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "Сервис massage-parlor недоступен"
+          description: "Приложение не отвечает более 1 минуты"
+        labels:
+          severity: critical
+      - uid: high-error-rate-alert
+        title: High Error Rate
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              expr: rate(http_server_requests_seconds_count{status=~"5.."}[5m])
+              instant: true
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0.05]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              refId: C
+              type: classic_conditions
+        noDataState: NoData
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "Высокий уровень ошибок 5xx"
+          description: "Обнаружено больше 0.05 ошибок в секунду за последние 5 минут"
+        labels:
+          severity: warning

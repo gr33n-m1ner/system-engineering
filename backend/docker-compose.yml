@@ -40,8 +40,47 @@ services:
       - SPRING_DATASOURCE_PASSWORD=password
       - JWT_SECRET=${JWT_SECRET:-AMxmyFp3O9I82Zc44ppw9eCW8u75+oIv4u7dENqjyCZRcvo1gRvptjFHkXGkfHUl}
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - app-network
+    depends_on:
+      - app
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring/grafana-datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+      - ./monitoring/grafana-dashboard-provider.yml:/etc/grafana/provisioning/dashboards/provider.yml
+      - ./monitoring/dashboard-application-health.json:/var/lib/grafana/dashboards/application-health.json
+      - ./monitoring/grafana-alert-rules.yml:/etc/grafana/provisioning/alerting/alert-rules.yml
+      - ./monitoring/grafana-contact-points.yml:/etc/grafana/provisioning/alerting/contact-points.yml
+      - ./monitoring/grafana-notification-policies.yml:/etc/grafana/provisioning/alerting/notification-policies.yml
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+    networks:
+      - app-network
+    depends_on:
+      - prometheus
+
 volumes:
   postgres_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   app-network:

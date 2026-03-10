@@ -77,6 +77,23 @@ public class AppointmentController {
         return ResponseEntity.ok(toResponse(updated));
     }
     
+    @DeleteMapping("/{id}")
+    public ResponseEntity<AppointmentResponse> cancelAppointment(
+            @PathVariable Integer id,
+            Authentication authentication) {
+        Integer currentUserId = Integer.valueOf(authentication.getName());
+        
+        Appointment appointment = appointmentService.getAppointmentById(id)
+                .orElseThrow(() -> new NotFoundException("Appointment with id " + id + " not found"));
+        
+        if (!currentUserId.equals(appointment.getClient().getId())) {
+            throw new AccessDeniedException("Access denied");
+        }
+        
+        Appointment cancelled = appointmentService.cancelAppointment(id);
+        return ResponseEntity.ok(toResponse(cancelled));
+    }
+    
     private AppointmentResponse toResponse(Appointment appointment) {
         AppointmentResponse response = new AppointmentResponse();
         response.setId(appointment.getId());

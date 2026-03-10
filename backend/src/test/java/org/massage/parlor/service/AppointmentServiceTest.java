@@ -141,4 +141,32 @@ class AppointmentServiceTest {
         assertThrows(NotFoundException.class, 
                 () -> appointmentService.createAppointment(CLIENT_ID, request));
     }
+    
+    @Test
+    void shouldCancelAppointment() {
+        Appointment appointment = new Appointment();
+        appointment.setId(APPOINTMENT_ID);
+        appointment.setStatus(AppointmentStatus.PENDING);
+        
+        when(appointmentRepository.findById(APPOINTMENT_ID)).thenReturn(Optional.of(appointment));
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        
+        Appointment result = appointmentService.cancelAppointment(APPOINTMENT_ID);
+        
+        assertNotNull(result);
+        assertEquals(AppointmentStatus.CANCELLED, result.getStatus());
+        verify(appointmentRepository).save(appointment);
+    }
+    
+    @Test
+    void shouldThrowExceptionWhenCancellingCompletedAppointment() {
+        Appointment appointment = new Appointment();
+        appointment.setId(APPOINTMENT_ID);
+        appointment.setStatus(AppointmentStatus.COMPLETED);
+        
+        when(appointmentRepository.findById(APPOINTMENT_ID)).thenReturn(Optional.of(appointment));
+        
+        assertThrows(IllegalStateException.class, 
+                () -> appointmentService.cancelAppointment(APPOINTMENT_ID));
+    }
 }

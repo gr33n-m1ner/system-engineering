@@ -156,6 +156,34 @@ class AppointmentControllerTest {
                 .andExpect(jsonPath("$.status").value("CANCELLED"));
     }
     
+    @Test
+    @WithMockUser(username = "1", roles = ROLE_CLIENT)
+    void shouldAllowClientToCancelOwnAppointment() throws Exception {
+        Appointment appointment = createAppointment();
+        
+        when(appointmentService.getAppointmentById(APPOINTMENT_ID)).thenReturn(Optional.of(appointment));
+        when(appointmentService.cancelAppointment(APPOINTMENT_ID))
+                .thenAnswer(invocation -> {
+                    appointment.setStatus(AppointmentStatus.CANCELLED);
+                    return appointment;
+                });
+        
+        mockMvc.perform(delete("/api/appointments/" + APPOINTMENT_ID))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELLED"));
+    }
+    
+    @Test
+    @WithMockUser(username = "2", roles = ROLE_CLIENT)
+    void shouldDenyClientToCancelOtherClientAppointment() throws Exception {
+        Appointment appointment = createAppointment();
+        
+        when(appointmentService.getAppointmentById(APPOINTMENT_ID)).thenReturn(Optional.of(appointment));
+        
+        mockMvc.perform(delete("/api/appointments/" + APPOINTMENT_ID))
+                .andExpect(status().isForbidden());
+    }
+    
     private User createUser(Integer id, String login, Role role) {
         User user = new User();
         user.setId(id);

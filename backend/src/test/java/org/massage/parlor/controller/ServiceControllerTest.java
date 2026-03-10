@@ -154,6 +154,22 @@ class ServiceControllerTest {
     }
     
     @Test
+    @WithMockUser(username = "3", roles = ROLE_ADMIN)
+    void shouldAllowAdminToAddOfferingToAnySpecialist() throws Exception {
+        SpecialistOffering specialistOffering = new SpecialistOffering();
+        specialistOffering.setPrice(PRICE);
+
+        when(specialistOfferingService.addOfferingToSpecialist(eq(2), any(AddSpecialistOfferingRequest.class)))
+                .thenReturn(specialistOffering);
+        
+        mockMvc.perform(post("/api/services/specialists/2")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(ADD_SPECIALIST_OFFERING_REQUEST)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.price").value(50.0));
+    }
+    
+    @Test
     @WithMockUser(username = "1", roles = ROLE_SPECIALIST)
     void shouldReturnBadRequestWhenAddingDuplicateOffering() throws Exception {
 

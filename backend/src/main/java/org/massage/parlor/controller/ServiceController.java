@@ -64,7 +64,10 @@ public class ServiceController {
             Authentication authentication) {
         Integer currentUserId = Integer.valueOf(authentication.getName());
         
-        if (!currentUserId.equals(specialistId)) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+        
+        if (!isAdmin && !currentUserId.equals(specialistId)) {
             throw new AccessDeniedException("Access denied");
         }
         

@@ -67,4 +67,17 @@ public class AppointmentService {
                 })
                 .orElseThrow(() -> new NotFoundException("Appointment with id " + id + " not found"));
     }
+    
+    @Transactional
+    public Appointment cancelAppointment(Integer id) {
+        return appointmentRepository.findById(id)
+                .map(appointment -> {
+                    if (appointment.getStatus() == AppointmentStatus.COMPLETED) {
+                        throw new IllegalStateException("Cannot cancel completed appointment");
+                    }
+                    appointment.setStatus(AppointmentStatus.CANCELLED);
+                    return appointmentRepository.save(appointment);
+                })
+                .orElseThrow(() -> new NotFoundException("Appointment with id " + id + " not found"));
+    }
 }

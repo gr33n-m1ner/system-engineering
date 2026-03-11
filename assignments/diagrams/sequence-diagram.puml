@@ -1,0 +1,64 @@
+@startuml
+!theme plain
+skinparam responseMessageBelowArrow true
+
+actor Пользователь as user
+participant "Backend" as service
+database "DB" as db
+
+== Регистрация ==
+user -> service: POST /register
+service -> db: INSERT user
+db --> service: user_id
+service -> service: JWT
+service --> user: token
+
+|||
+
+== Вход ==
+user -> service: POST /login
+service -> db: SELECT user
+db --> service: user
+service -> service: verify + JWT
+service --> user: token
+
+|||
+
+== Создание записи ==
+user -> service: POST /appointments
+service -> service: validate JWT
+service -> db: SELECT offering
+db --> service: offering
+service -> db: INSERT appointment
+db --> service: id
+service --> user: appointment
+
+|||
+
+== Получение записей ==
+user -> service: GET /appointments
+service -> service: check role
+
+alt ADMIN
+    service -> db: SELECT all
+else SPECIALIST
+    service -> db: SELECT by specialist
+else CLIENT
+    service -> db: SELECT by client
+end
+
+db --> service: list
+service --> user: appointments
+
+|||
+
+== Обновление статуса ==
+user -> service: PUT /appointments/{id}/status
+service -> service: verify access
+service -> db: SELECT appointment
+db --> service: appointment
+service -> db: UPDATE status
+db --> service: ok
+service --> user: appointment
+
+@enduml

@@ -9,3 +9,4 @@
 5. [Grafana](backend/monitoring)
 6. [Задание по SQL](https://platform.stratascratch.com/user/CliftonOwhere1337)
 7. [Задание по Kafka и ClickHouse](assignments/kafka)
+8. [Диаграммы BPMN и Sequence](assignments/diagrams)

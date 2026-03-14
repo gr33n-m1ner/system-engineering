@@ -1,0 +1,124 @@
+@startuml
+title Основной поток работы системы
+
+|#lightblue|Клиент|
+|#lightgreen|Сервис|
+|#salmon|Массажист|
+|#lightyellow|Администратор|
+
+|Клиент|
+start
+:Регистрация;
+
+|Сервис|
+:Создание нового пользователя
+(POST /api/auth/register);
+
+|Клиент|
+:Авторизация;
+
+|Сервис|
+:Выдача JWT токена
+(POST /api/auth/auth);
+
+|Клиент|
+:Получение информации о специалистах и услугах;
+
+|Сервис|
+:Выдача нужной информации
+(GET /api/specialists
+GET /api/services/specialists/{id});
+
+|Клиент|
+:Создание записи;
+
+|Сервис|
+:Запись (PENDING)
+(POST /api/appointments);
+
+|Массажист|
+if (Подтвердить?) then (да)
+    |Сервис|
+    :Запись (CONFIRMED)
+    (PUT /api/appointments/{id}/status);
+else (нет)
+    |Сервис|
+    :Запись (CANCELED)
+    (PUT /api/appointments/{id}/status);
+    stop;
+endif;
+
+|Клиент|
+if (Отменить?) then (да)
+  |Сервис|
+  :Запись (CANCELED)
+  DELETE /api/appointments/{id};  
+
+  stop
+else (нет)
+  |Клиент|
+  :Посещение салона;
+endif
+
+
+|Массажист|
+:Проведение массажа;
+:Завершение;
+
+|Сервис|
+:Запись (COMPLETED)
+(PUT /api/appointments/{id}/status) ;
+
+stop
+
+|Массажист|
+start
+:Вход;
+:Управление своими услугами и ценами;
+
+|Сервис|
+:Добавить, обновить или удалить услуги массажиста
+(POST/DELETE /api/services/specialists/{specialistId});
+
+|Массажист|
+:Работа с записями клиентов на прием;
+
+|Сервис|
+:Обновить записи
+(GET /api/appointments
+PUT /api/appointments/status);
+
+|Массажист|
+:Просмотр аналитики;
+
+|Сервис|
+:Выдача выручки и статистики
+(GET /api/statistics/revenue/specialist/{id});
+stop
+
+|Администратор|
+start
+:Вход;
+:Управление существующими пользователями;
+
+|Сервис|
+:Обновить роли
+(GET /api/users
+PUT /api/users/{id}/role);
+
+|Администратор|
+:Управление каталогом услуг;
+
+|Сервис|
+:Обновить каталог
+(POST/DELETE /api/services/types);
+
+|Администратор|
+:Просмотр аналитики по работе салона;
+
+|Сервис|
+:Выдача отчета по салону
+(GET /api/statistics/revenue);
+stop
+
+@enduml
